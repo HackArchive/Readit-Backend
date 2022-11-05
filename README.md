@@ -1,6 +1,6 @@
 # ReadIT (Backend)
 
-[![N|Solid](https://cldup.com/dTxpPi9lDf.thumb.png)](https://nodesource.com/products/nsolid)
+![ReadIt-logos](https://user-images.githubusercontent.com/68425016/200112210-676c7b74-3768-4a0e-a012-2651601cee34.jpeg)
 
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
 ###### Readit helps readers build discipline.
