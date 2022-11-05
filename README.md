@@ -20,3 +20,8 @@ As you complete more and more Tasks(Books) you will be incentivize.
 
 - easily setup ReadIt through docker-compose 
 - run ```docker-compose up```
+
+## Postman Api Docs
+[![API DOCS](https://documenter.getpostman.com/view/19782933/2s8YYCuRdy#intro
+)](https://documenter.getpostman.com/view/19782933/2s8YYCuRdy#intro
+)
