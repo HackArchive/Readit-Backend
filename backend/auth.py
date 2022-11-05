@@ -64,7 +64,15 @@ def login():
         'expire':str(datetime.datetime.utcnow()+datetime.timedelta(hours=24))
         },SECRET_KEY)
 
-    return jsonify({"token":token})
+    return jsonify({
+        "token":token,
+        "user":{
+            "id":user.id,
+            "name":user.name,
+            "email":user.email,
+            "phone_number":user.phone_number,
+        }
+        })
 
 
 def get_token():

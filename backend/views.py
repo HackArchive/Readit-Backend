@@ -11,7 +11,7 @@ from backend.serializers import TodoSchema,TaskSchema
 from marshmallow.exceptions import ValidationError
 from backend.utils import month_to_minutes,days_to_minutes,hours_to_minutes
 from extensions import db
-from backend.tasks import reminder_task
+from backend.tasks import reminder_task,send_message
 from ocr.reader import image_to_text
 
 views = Blueprint("views",__name__)
@@ -144,6 +144,7 @@ def add_todo_view(user):
     total_minutes = total_duration
 
     schedule.every((total_minutes/total_todos)*60).seconds.do(reminder_task,new_task.id,user.id)
+    send_message(f"Awesome {user.name}! Making new goals and Achieving them makes you stronger.",user.phone_number.strip())
 
     return make_response({})
 

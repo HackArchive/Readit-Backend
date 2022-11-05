@@ -1,7 +1,7 @@
 import easyocr
 import re
 
-def read_data(filepath):
+def image_to_text(filepath):
     reader = easyocr.Reader(['en'])
     raw_data = reader.readtext(filepath)
     fresult = []
