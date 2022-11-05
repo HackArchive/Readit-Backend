@@ -31,8 +31,10 @@ def list_task_view(user):
         data = {
             "id":task.id,
             "title":task.title,
-            "duration_in_min":task.duration_to_complete_in_minutes,
             "completed":f"{(completed_todos/total_todos)*100}%",
+            "duration_in_min":task.duration_to_complete_in_minutes,
+            "is_completed":task.is_completed,
+            "is_canceled":task.is_canceled,
         }
 
         task_data.append(data)
@@ -57,18 +59,14 @@ def show_task_view(user,pk):
     if todos.first()==None:
         return make_response({"task":"Task not found"},404)
     
-    todos_data = []
-
-    for todo in todos:
-
-        data = {
-            "id":todo.id,
-            "title": todo.title,
-            "is_completed":todo.is_completed,
-            "is_inprogress":todo.is_inprogress            
-        }
-
-        todos_data.append(data)
+    todos_data = [
+            {
+                "id":todo.id,
+                "title": todo.title,
+                "is_completed":todo.is_completed,
+                "is_inprogress":todo.is_inprogress     
+            } for todo in todos
+        ]
 
     return make_response(todos_data,200)
 
