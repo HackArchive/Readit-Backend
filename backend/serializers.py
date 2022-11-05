@@ -13,3 +13,18 @@ class UserSchema(ma.SQLAlchemySchema):
     phone_number = ma.auto_field(required=False)
     password = ma.auto_field(required=True)
 
+class TaskSchema(ma.SQLAlchemySchema):
+
+    class Meta:
+        model = Task
+        fields = ("title",)
+    
+    title = ma.auto_field(required=True)
+
+class TodoSchema(ma.SQLAlchemySchema):
+
+    class Meta:
+        model = Todo
+        fields = ("title",)
+    
+    title = ma.auto_field(required=True)
