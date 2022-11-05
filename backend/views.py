@@ -172,6 +172,7 @@ def update_todo_view(user,pk):
 def update_task_view(user,pk):
     
     data = request.json
+    print(data)
     if data["is_canceled"] == data["is_completed"]:
         return make_response({"complete":"cannot cancel and complete at same time."},400)
 
@@ -186,7 +187,8 @@ def update_task_view(user,pk):
         db.session.commit()
         return make_response({"Task":"canceled"},200)
     
-    todo_remaining = Todo.query.filter_by(task=task.id).first()
+    todo_remaining = Todo.query.filter_by(task=task.id,is_completed=False).first()
+    print(todo_remaining,"=====")
     if todo_remaining:
         return make_response({"cannot complete":"todos still pending"},400)
 
