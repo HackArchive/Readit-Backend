@@ -66,3 +66,48 @@ def login():
 
     return jsonify({"token":token})
 
+
+def get_token():
+    token = request.headers["Authorization"]
+    if not token:
+        return make_response({"Token":"Token is missing"},401)
+    try:
+        data = jwt.decode(token,SECRET_KEY,algorithms=['HS256'])
+        return data
+    except ValidationError as err:
+        return make_response(jsonify(err.messages),401)
+
+# is authenticated decorator 
+def is_authenticated(func):
+
+    @wraps(func)
+    def wrapper(*args,**kwargs):
+
+        token_data = get_token()
+
+        if type(token_data)!=dict: 
+            # failed to decode token returning 401 response
+            return make_response({"Authorization":"invalid token"},400)
+        
+        user = User.query.filter_by(email=token_data["user"]).first()
+
+        if user==None:
+            return make_response({'Authorization':"invalid user"},400)
+
+        return func(user,*args,**kwargs)
+
+    return wrapper
+
+
+def profile_permission(pk):
+
+    token_data = get_token()
+    
+    if type(token_data)!=dict:
+        # failed to decode token returning 401 response
+        return token_data
+
+    if User.query.filter_by(id=pk,email=token_data["user"]).first()==None:
+        return make_response({"Permission":"do not have permission to view this page"},401)
+    return None
+
