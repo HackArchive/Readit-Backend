@@ -1,4 +1,4 @@
-# ReadIT (Backend)
+# ReadIT (Backend) (ClockHacks)
 
 <img src="https://user-images.githubusercontent.com/68425016/200112210-676c7b74-3768-4a0e-a012-2651601cee34.jpeg" width="100">
 
