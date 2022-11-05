@@ -101,6 +101,9 @@ def add_todo_view(user):
             image.save(os.path.join(UPLOAD_FOLDER,image_name))
             todos_text += image_to_text(os.path.join(UPLOAD_FOLDER,image_name))
 
+    if len(todos_text)==0:
+        return make_response({"Todos":"Cannot read index properly."},400)
+
     total_duration = 0
     if data["duration_type"]=="months":
         total_duration = month_to_minutes(data["duration"])
