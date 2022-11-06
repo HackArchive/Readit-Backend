@@ -24,8 +24,8 @@ def create_app():
 
     from backend.models import (
         User,
-        Task,
-        Todo
+        Book,
+        Chapter
     )
 
     create_database(app)

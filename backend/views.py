@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from uuid import uuid1
 from extensions import UPLOAD_FOLDER
 from backend.models import Book,Chapter,User
-from backend.serializers import TodoSchema,TaskSchema
+from backend.serializers import ChapterSchema,BookSchema
 from marshmallow.exceptions import ValidationError
 from backend.utils import month_to_minutes,days_to_minutes,hours_to_minutes
 from extensions import db
@@ -18,7 +18,7 @@ views = Blueprint("views",__name__)
 
 @views.route('/',methods=['GET'])
 @is_authenticated
-def list_task_view(user):
+def list_book_view(user):
     
 
     books = Book.query.filter_by(user_id=user.id).all()
@@ -26,7 +26,7 @@ def list_task_view(user):
     for book in books:
 
         completed_chapters = len(Chapter.query.filter_by(book=book.id,is_completed=True).all())
-        total_chapters = len(Chapter.query.filter_by(task=book.id).all())
+        total_chapters = len(Chapter.query.filter_by(book=book.id).all())
 
         data = {
             "id":book.id,
@@ -46,19 +46,16 @@ def list_task_view(user):
 
 @views.route('/<pk>',methods=['GET'])
 @is_authenticated
-def show_task_view(user,pk):
+def show_book_view(user,pk):
 
-    # does user created the task that is queried
+    # does user created the book that is queried
     book = Book.query.filter_by(id=int(pk),user_id=user.id).first()
 
     if book == None:
         return make_response({"book":"book not found"},404)
 
     chapters = Chapter.query.filter_by(book=int(pk)).all()
-    
-    if chapters.first()==None:
-        return make_response({"task":"Task not found"},404)
-    
+        
     chapters_data = [
             {
                 "id":chapter.id,
@@ -74,16 +71,15 @@ def show_task_view(user,pk):
 
 @views.route('/add',methods=['POST'])
 @is_authenticated
-def add_todo_view(user):
+def add_book_view(user):
 
     images = request.files.getlist("images")  
     data = json.loads(request.form["data"])
     
-    todo_serializer = TodoSchema()
-    task_serializer = TaskSchema()
+    chapter_serializer = ChapterSchema()
 
     try:
-        todo_serializer.load({"title":data["title"]})
+        chapter_serializer.load({"title":data["title"]})
     except ValidationError as err:
         return make_response(err.messages,400)
 
@@ -91,16 +87,16 @@ def add_todo_view(user):
     if len(images)==1 and images[0].content_type==None:
         return make_response({"images":"upload at least 1 image"},400)
 
-    todos_text = []
+    chapters_text = []
     for image in images:
         if image.content_type!=None:
             image_name = secure_filename(image.filename)
             image_name = str(uuid1()) + "_" + image_name
             image.save(os.path.join(UPLOAD_FOLDER,image_name))
-            todos_text += image_to_text(os.path.join(UPLOAD_FOLDER,image_name))
+            chapters_text += image_to_text(os.path.join(UPLOAD_FOLDER,image_name))
 
-    if len(todos_text)==0:
-        return make_response({"Todos":"Cannot read index properly."},400)
+    if len(chapters_text)==0:
+        return make_response({"chapters":"Cannot read index properly."},400)
 
     total_duration = 0
     if data["duration_type"]=="months":
@@ -115,83 +111,83 @@ def add_todo_view(user):
         return make_response({"duration_type":"invalid duration type"})
 
 
-    new_task = Task(
+    new_book = Book(
         title = data["title"],
         user_id = user.id,
         duration_to_complete_in_minutes = total_duration
     )
 
-    db.session.add(new_task)
+    db.session.add(new_book)
     db.session.commit()
 
     
-    todos_obj = []
-    for todo in todos_text:
-        new_todo = Chapter(
-            title = todo,
-            task = new_task.id
+    chapters_obj = []
+    for chapter in chapters_text:
+        new_chapter = Chapter(
+            title = chapter,
+            book = new_book.id
         )
 
-        todos_obj.append(new_todo)
+        chapters_obj.append(new_chapter)
     
-    db.session.add_all(todos_obj)
+    db.session.add_all(chapters_obj)
     db.session.commit()
 
-    # dividing todos and scheduling task
-    total_todos = len(todos_obj)
+    # dividing chapters and scheduling book
+    total_chapters = len(chapters_obj)
     total_minutes = total_duration
 
-    schedule.every((total_minutes/total_todos)*60).seconds.do(reminder_task,new_task.id,user.id)
+    schedule.every((total_minutes/total_chapters)*60).seconds.do(reminder_task,new_book.id,user.id)
     send_message(f"Awesome {user.name}! Making new goals and Achieving them makes you stronger.",user.phone_number.strip())
 
     return make_response({})
 
 
-@views.route('/update_todo/<pk>',methods=['POST'])
+@views.route('/update_chapter/<pk>',methods=['POST'])
 @is_authenticated
-def update_todo_view(user,pk):
+def update_chapter_view(user,pk):
     
     data = request.json
 
-    todo = Chapter.query.filter_by(id=int(pk)).first()
+    chapter = Chapter.query.filter_by(id=int(pk)).first()
     
-    if todo==None:
-        return make_response({"todo":"does not exists"},404)
+    if chapter==None:
+        return make_response({"chapter":"does not exists"},404)
     
-    todo.is_completed = data["is_completed"]
-    todo.is_inprogress = data["is_inprogress"]
+    chapter.is_completed = data["is_completed"]
+    chapter.is_inprogress = data["is_inprogress"]
 
 
-    db.session.add(todo)
+    db.session.add(chapter)
     db.session.commit()
 
     return make_response({},200)
 
-@views.route('/update_task/<pk>',methods=['POST'])
+@views.route('/update_book/<pk>',methods=['POST'])
 @is_authenticated
-def update_task_view(user,pk):
+def update_book_view(user,pk):
     
     data = request.json
-    print(data)
+
     if data["is_canceled"] == data["is_completed"]:
         return make_response({"complete":"cannot cancel and complete at same time."},400)
 
-    task = Task.query.filter_by(id=int(pk)).first()
+    book = Book.query.filter_by(id=int(pk)).first()
     
-    if task==None:
-        return make_response({"task":"does not exists"},404)
+    if book==None:
+        return make_response({"book":"does not exists"},404)
     
     if data["is_canceled"]:
-        task.is_canceled = data["is_canceled"]
-        db.session.add(task)
+        book.is_canceled = data["is_canceled"]
+        db.session.add(book)
         db.session.commit()
-        return make_response({"Task":"canceled"},200)
+        return make_response({"Book":"canceled"},200)
     
-    todo_remaining = Chapter.query.filter_by(task=task.id,is_completed=False).first()
-    if todo_remaining:
-        return make_response({"cannot complete":"todos still pending"},400)
+    book_remaining = Chapter.query.filter_by(book=book.id,is_completed=False).first()
+    if book_remaining:
+        return make_response({"cannot complete":"chapters still pending"},400)
 
-    task.is_completed = data["is_completed"]
+    book.is_completed = data["is_completed"]
 
     return make_response({},200)
 
