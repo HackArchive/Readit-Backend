@@ -1,5 +1,5 @@
 from extensions import ma
-from backend.models import User,Todo,Task
+from backend.models import User,Book,Chapter
 
 
 class UserSchema(ma.SQLAlchemySchema):
@@ -13,18 +13,18 @@ class UserSchema(ma.SQLAlchemySchema):
     phone_number = ma.auto_field(required=False)
     password = ma.auto_field(required=True)
 
-class TaskSchema(ma.SQLAlchemySchema):
+class BookSchema(ma.SQLAlchemySchema):
 
     class Meta:
-        model = Task
+        model = Book
         fields = ("title",)
     
     title = ma.auto_field(required=True)
 
-class TodoSchema(ma.SQLAlchemySchema):
+class ChapterSchema(ma.SQLAlchemySchema):
 
     class Meta:
-        model = Todo
+        model = Chapter
         fields = ("title",)
     
     title = ma.auto_field(required=True)
