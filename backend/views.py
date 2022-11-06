@@ -188,6 +188,8 @@ def update_book_view(user,pk):
         return make_response({"cannot complete":"chapters still pending"},400)
 
     book.is_completed = data["is_completed"]
+    db.session.add(book)
+    db.session.commit()
 
     return make_response({},200)
 
