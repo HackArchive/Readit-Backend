@@ -194,13 +194,19 @@ def update_book_view(user,pk):
 
 @views.route('/profile/',methods=['GET'])
 @is_authenticated
-def user_profile_view(user,pk):
+def user_profile_view(user):
 
-    user_data = {
+    books_pending = len(Book.query.filter_by(is_canceled=False,is_completed=False).all())
+    books_canceled = len(Book.query.filter_by(is_canceled=True,is_completed=False).all())
+    books_completed = len(Book.query.filter_by(is_canceled=False,is_completed=True).all())
+
+    profile_data = {
         "name":user.name,
         "email":user.email,
         "phone_number":user.phone_number,
-        # "books_pending":0,
-        # "task_completed"
+        "books_pending":books_pending,
+        "books_completed":books_completed,
+        "books_canceled":books_canceled
     }
     
+    return make_response(profile_data,200)
