@@ -3,20 +3,20 @@ from flask_login import UserMixin
 from sqlalchemy.sql import func
 
 
-class Todo(db.Model):
+class Chapter(db.Model):
     
     id = db.Column(db.Integer,primary_key=True)
     title = db.Column(db.String(150),nullable=False)
-    task = db.Column(db.Integer,db.ForeignKey('task.id'))
+    book = db.Column(db.Integer,db.ForeignKey('book.id'))
     is_completed = db.Column(db.Boolean,default=False)
     is_inprogress = db.Column(db.Boolean,default=False)
 
 
-class Task(db.Model):
+class Book(db.Model):
 
     id = db.Column(db.Integer,primary_key=True)
     title = db.Column(db.String(120),nullable=False)
-    todos = db.relationship('Todo',backref='task_todos')
+    chapters = db.relationship('Chapter',backref='book_chapters')
     duration_to_complete_in_minutes = db.Column(db.Integer,nullable=False)
     started_on = db.Column(db.DateTime(timezone=True), default=func.now())
     user_id = db.Column(db.Integer,db.ForeignKey('user.id'))
@@ -31,7 +31,7 @@ class User(db.Model,UserMixin):
     email = db.Column(db.String(200),unique=True,nullable=False)
     phone_number = db.Column(db.String(16),nullable=True)
     password = db.Column(db.String(16),nullable=False)
-    tasks = db.relationship('Task',backref='user_tasks')
+    books = db.relationship('Book',backref='user_books')
 
     created_at = db.Column(db.DateTime(timezone=True), default=func.now())
     update_at = db.Column(db.DateTime(timezone=True), onupdate=func.now())
