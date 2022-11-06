@@ -6,7 +6,7 @@ from backend.auth import is_authenticated
 from werkzeug.utils import secure_filename
 from uuid import uuid1
 from extensions import UPLOAD_FOLDER
-from backend.models import Task,Todo,User
+from backend.models import Book,Chapter,User
 from backend.serializers import TodoSchema,TaskSchema
 from marshmallow.exceptions import ValidationError
 from backend.utils import month_to_minutes,days_to_minutes,hours_to_minutes
@@ -21,25 +21,25 @@ views = Blueprint("views",__name__)
 def list_task_view(user):
     
 
-    tasks = Task.query.filter_by(user_id=user.id).all()
-    task_data = []
-    for task in tasks:
+    books = Book.query.filter_by(user_id=user.id).all()
+    books_data = []
+    for book in books:
 
-        completed_todos = len(Todo.query.filter_by(task=task.id,is_completed=True).all())
-        total_todos = len(Todo.query.filter_by(task=task.id).all())
+        completed_chapters = len(Chapter.query.filter_by(book=book.id,is_completed=True).all())
+        total_chapters = len(Chapter.query.filter_by(task=book.id).all())
 
         data = {
-            "id":task.id,
-            "title":task.title,
-            "completed":f"{(completed_todos/total_todos)*100}%",
-            "duration_in_min":task.duration_to_complete_in_minutes,
-            "is_completed":task.is_completed,
-            "is_canceled":task.is_canceled,
+            "id":book.id,
+            "title":book.title,
+            "completed":f"{(completed_chapters/total_chapters)*100}%",
+            "duration_in_min":book.duration_to_complete_in_minutes,
+            "is_completed":book.is_completed,
+            "is_canceled":book.is_canceled,
         }
 
-        task_data.append(data)
+        books_data.append(data)
     
-    return make_response(task_data,200)
+    return make_response(books_data,200)
 
 
 
@@ -49,26 +49,26 @@ def list_task_view(user):
 def show_task_view(user,pk):
 
     # does user created the task that is queried
-    task = Task.query.filter_by(id=int(pk),user_id=user.id).first()
+    book = Book.query.filter_by(id=int(pk),user_id=user.id).first()
 
-    if task == None:
-        return make_response({"task":"Task not found"},404)
+    if book == None:
+        return make_response({"book":"book not found"},404)
 
-    todos = Todo.query.filter_by(task=int(pk))
+    chapters = Chapter.query.filter_by(book=int(pk)).all()
     
-    if todos.first()==None:
+    if chapters.first()==None:
         return make_response({"task":"Task not found"},404)
     
-    todos_data = [
+    chapters_data = [
             {
-                "id":todo.id,
-                "title": todo.title,
-                "is_completed":todo.is_completed,
-                "is_inprogress":todo.is_inprogress     
-            } for todo in todos
+                "id":chapter.id,
+                "title": chapter.title,
+                "is_completed":chapter.is_completed,
+                "is_inprogress":chapter.is_inprogress     
+            } for chapter in chapters
         ]
 
-    return make_response(todos_data,200)
+    return make_response(chapters_data,200)
 
 
 
@@ -127,7 +127,7 @@ def add_todo_view(user):
     
     todos_obj = []
     for todo in todos_text:
-        new_todo = Todo(
+        new_todo = Chapter(
             title = todo,
             task = new_task.id
         )
@@ -153,7 +153,7 @@ def update_todo_view(user,pk):
     
     data = request.json
 
-    todo = Todo.query.filter_by(id=int(pk)).first()
+    todo = Chapter.query.filter_by(id=int(pk)).first()
     
     if todo==None:
         return make_response({"todo":"does not exists"},404)
@@ -187,8 +187,7 @@ def update_task_view(user,pk):
         db.session.commit()
         return make_response({"Task":"canceled"},200)
     
-    todo_remaining = Todo.query.filter_by(task=task.id,is_completed=False).first()
-    print(todo_remaining,"=====")
+    todo_remaining = Chapter.query.filter_by(task=task.id,is_completed=False).first()
     if todo_remaining:
         return make_response({"cannot complete":"todos still pending"},400)
 
@@ -196,3 +195,16 @@ def update_task_view(user,pk):
 
     return make_response({},200)
 
+
+@views.route('/profile/',methods=['GET'])
+@is_authenticated
+def user_profile_view(user,pk):
+
+    user_data = {
+        "name":user.name,
+        "email":user.email,
+        "phone_number":user.phone_number,
+        # "books_pending":0,
+        # "task_completed"
+    }
+    
